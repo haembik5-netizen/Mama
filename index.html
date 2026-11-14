@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OMNIX | Management System</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0a0c14;color:#fff;font-family:Arial}
+header{padding:20px;background:#151a2a;border-bottom:1px solid #292e42}
+header h2{margin:0;color:#a99cff}
+header p{color:#9299ae;margin-bottom:0}
+nav{display:flex;overflow:auto;gap:8px;padding:12px;background:#101321}
+nav button{white-space:nowrap;width:auto;margin:0}
+button{background:#725cff;color:white;border:0;padding:11px 15px;border-radius:9px;cursor:pointer}
+main{padding:18px}
+section{display:none}
+section.active{display:block}
+h2{color:#b5aaff}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.card{background:#171c2c;border:1px solid #292e42;padding:17px;border-radius:14px}
+.card strong{font-size:23px;color:#b4a7ff}
+input,textarea{width:100%;padding:12px;margin:7px 0;background:#0c1020;color:white;border:1px solid #343b53;border-radius:8px}
+.item{padding:13px;background:#20263a;border-radius:9px;margin:8px 0}
+small{color:#9299ae}
+</style>
+</head>
+<body>
+<header>
+<h2>OMNIX CONTROL</h2>
+<p>Enterprise Management Platform</p>
+</header>
+
+<nav>
+<button onclick="show('home')">หน้าหลัก</button>
+<button onclick="show('members')">สมาชิก</button>
+<button onclick="show('ticket')">Ticket</button>
+<button onclick="show('news')">ประกาศ</button>
+<button onclick="show('shop')">ร้านค้า</button>
+<button onclick="show('settings')">ตั้งค่า</button>
+</nav>
+
+<main>
+<section id="home" class="active">
+<h2>Dashboard</h2>
+<div class="grid">
+<div class="card">สมาชิกทั้งหมด<strong id="count">1,248</strong></div>
+<div class="card">Ticket ทั้งหมด<strong id="tickets">24</strong></div>
+<div class="card">ประกาศ<strong id="posts">8</strong></div>
+<div class="card">สถานะระบบ<strong>ONLINE</strong></div>
+</div>
+<h2>ภาพรวมระบบ</h2>
+<div class="card">ยินดีต้อนรับสู่ OMNIX CONTROL</div>
+</section>
+
+<section id="members">
+<h2>ระบบสมาชิก</h2>
+<input id="memberName" placeholder="ชื่อสมาชิก">
+<button onclick="addMember()">เพิ่มสมาชิก</button>
+<div id="memberList"></div>
+</section>
+
+<section id="ticket">
+<h2>ระบบ Ticket</h2>
+<input id="ticketName" placeholder="หัวข้อ Ticket">
+<textarea id="ticketDetail" placeholder="รายละเอียด"></textarea>
+<button onclick="addTicket()">ส่ง Ticket</button>
+<div id="ticketList"></div>
+</section>
+
+<section id="news">
+<h2>ประกาศข่าวสาร</h2>
+<input id="newsTitle" placeholder="หัวข้อประกาศ">
+<textarea id="newsDetail" placeholder="รายละเอียดประกาศ"></textarea>
+<button onclick="addNews()">เผยแพร่</button>
+<div id="newsList"></div>
+</section>
+
+<section id="shop">
+<h2>ร้านค้า</h2>
+<input id="productName" placeholder="ชื่อสินค้า">
+<input id="productPrice" type="number" placeholder="ราคา">
+<button onclick="addProduct()">เพิ่มสินค้า</button>
+<div id="productList"></div>
+</section>
+
+<section id="settings">
+<h2>ตั้งค่าระบบ</h2>
+<div class="card">
+<p>ชื่อระบบ: OMNIX</p>
+<p>เวอร์ชัน: 1.0.0</p>
+<p>ธีม: Dark Purple</p>
+<button onclick="clearData()">ล้างข้อมูลเว็บไซต์</button>
+</div>
+</section>
+</main>
+
+<script>
+function show(id){
+ document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+}
+function load(key){return JSON.parse(localStorage.getItem(key)||'[]')}
+function save(key,data){localStorage.setItem(key,JSON.stringify(data))}
+function render(key,id,format){
+ document.getElementById(id).innerHTML=load(key).map(format).join('');
+}
+function addMember(){
+ let v=memberName.value.trim();if(!v)return;
+ let d=load('members');d.push(v);save('members',d);
+ memberName.value='';renderAll();
+}
+function addTicket(){
+ let n=ticketName.value.trim(),d=ticketDetail.value.trim();
+ if(!n)return;
+ let a=load('tickets');a.push({n,d});save('tickets',a);
+ ticketName.value='';ticketDetail.value='';renderAll();
+}
+function addNews(){
+ let n=newsTitle.value.trim(),d=newsDetail.value.trim();
+ if(!n)return;
+ let a=load('news');a.push({n,d});save('news',a);
+ newsTitle.value='';newsDetail.value='';renderAll();
+}
+function addProduct(){
+ let n=productName.value.trim(),p=productPrice.value;
+ if(!n||p===''||Number(p)<0)return;
+ let a=load('products');a.push({n,p});save('products',a);
+ productName.value='';productPrice.value='';renderAll();
+}
+function clearData(){
+ if(confirm('ยืนยันล้างข้อมูลทั้งหมด?')){
+ ['members','tickets','news','products'].forEach(k=>localStorage.removeItem(k));
+ renderAll();
+ }
+}
+function renderAll(){
+ render('members','memberList',v=>`<div class="item">👤 ${v}</div>`);
+ render('tickets','ticketList',v=>`<div class="item">🎫 ${v.n}<br><small>${v.d}</small></div>`);
+ render('news','newsList',v=>`<div class="item">📢 ${v.n}<br><small>${v.d}</small></div>`);
+ render('products','productList',v=>`<div class="item">🛍️ ${v.n} — ${v.p} บาท</div>`);
+}
+renderAll();
+</script>
+</body>
+</html>
